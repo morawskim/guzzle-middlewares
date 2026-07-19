@@ -11,11 +11,15 @@
 >
     <php>
         <ini name="error_reporting" value="-1" />
+        <env name="DATABASE_URL" value="mysql://dbname:userpassword@127.0.0.1:3307/dbname?charset=utf8mb4"/>
     </php>
 
     <testsuites>
-        <testsuite name="Test Suite">
-            <directory>./tests/</directory>
+        <testsuite name="unit">
+            <directory>tests/unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/integration</directory>
         </testsuite>
     </testsuites>
 </phpunit>

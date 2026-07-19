@@ -1,21 +1,34 @@
 <?php
 
-namespace Mmo\GuzzleMiddleware\TraceRequest\tests;
+namespace Mmo\GuzzleMiddleware\TraceRequest\tests\integration;
 
-use Mmo\GuzzleMiddleware\TraceRequest\Storage\StreamStorage;
-use Mmo\GuzzleMiddleware\TraceRequest\TraceRequestMiddleware;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use Mmo\GuzzleMiddleware\TraceRequest\Storage\PDOStorage;
+use Mmo\GuzzleMiddleware\TraceRequest\tests\PDOFactory;
+use Mmo\GuzzleMiddleware\TraceRequest\TraceRequestMiddleware;
+use PDO;
 use PHPUnit\Framework\TestCase;
-class TraceRequestMiddlewareTest extends TestCase
+
+class MysqlTest extends TestCase
 {
-    public function testA()
+    private const TABLE_NAME = 'guzzle_trace_request';
+    private PDO $pdo;
+
+    protected function setUp(): void
     {
-        $middleware = new TraceRequestMiddleware(new StreamStorage(
-            $requestStream = fopen('php://memory', 'rb+'),
-            $responseStream = fopen('php://memory', 'rb+'),
+        $this->pdo = PDOFactory::fromDatabaseUrl($_ENV['DATABASE_URL']);
+        $this->pdo->exec('DROP TABLE IF EXISTS ' . self::TABLE_NAME);
+        parent::setUp();
+    }
+
+    public function testMysqlStorage(): void
+    {
+        $middleware = new TraceRequestMiddleware(new PDOStorage(
+            $this->pdo,
+            self::TABLE_NAME,
         ));
         $mock = new MockHandler([
             new Response(200, ['X-Foo' => 'Bar'], json_encode(['foo' => 'bar'], JSON_THROW_ON_ERROR)),
@@ -32,17 +45,15 @@ class TraceRequestMiddlewareTest extends TestCase
             'body' => json_encode(['xyz' => 'abc'], JSON_THROW_ON_ERROR),
         ]);
 
-        rewind($requestStream);
-        rewind($responseStream);
-        $requestStreamContents = stream_get_contents($requestStream);
-        $responseStreamContents = stream_get_contents($responseStream);
+        $rows = $this->pdo->query('SELECT * FROM ' . self::TABLE_NAME)->fetchAll();
+        $this->assertCount(1, $rows);
+        $requestStreamContents = $rows[0]['request'];
+        $responseStreamContents = $rows[0]['response'];
 
-        $this->assertNotEmpty($requestStreamContents);
         $this->assertStringContainsString('POST /v1/resource HTTP', $requestStreamContents);
         $this->assertStringContainsString('User-Agent: GuzzleHttp', $requestStreamContents);
         $this->assertStringContainsString('xyz":"abc"', $requestStreamContents);
 
-        $this->assertNotEmpty($responseStreamContents);
         $this->assertStringContainsString('HTTP/1.1 200', $responseStreamContents);
         $this->assertStringContainsString('X-Foo: Bar', $responseStreamContents);
         $this->assertStringContainsString('foo":"bar"', $responseStreamContents);
