@@ -7,5 +7,5 @@ use GuzzleHttp\Psr7\Response;
 
 interface StorageInterface
 {
-    public function store(Request $request, Response $response): void;
+    public function store(string $requestId, Request $request, Response $response): void;
 }

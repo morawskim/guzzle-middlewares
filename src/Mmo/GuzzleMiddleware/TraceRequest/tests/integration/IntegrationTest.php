@@ -29,6 +29,7 @@ class IntegrationTest extends TestCase
         try {
             $client->request('POST', '/status/507', [
                 'body' => json_encode(['xyz' => 'abc'], JSON_THROW_ON_ERROR),
+                TraceRequestMiddleware::REQUEST_ID => '1234567890',
             ]);
         } catch (ServerException $e) {
             $exceptionHasBeenThrow = true;

@@ -35,10 +35,12 @@ class StreamStorage implements StorageInterface
         $this->streamResponse = $streamResponse;
     }
 
-    public function store(Request $request, Response $response): void
+    public function store(string $requestId, Request $request, Response $response): void
     {
         $marker = "\n" . str_repeat('=', 20) . "\n";
+        fwrite($this->streamRequest, $requestId . "\n");
         fwrite($this->streamRequest, Message::toString($request) . $marker);
+        fwrite($this->streamResponse, $requestId . "\n");
         fwrite($this->streamResponse, Message::toString($response) . $marker);
     }
 }

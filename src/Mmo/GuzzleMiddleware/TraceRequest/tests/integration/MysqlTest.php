@@ -43,10 +43,12 @@ class MysqlTest extends TestCase
         ]);
         $client->request('POST', 'resource', [
             'body' => json_encode(['xyz' => 'abc'], JSON_THROW_ON_ERROR),
+            TraceRequestMiddleware::REQUEST_ID => '1234567890',
         ]);
 
         $rows = $this->pdo->query('SELECT * FROM ' . self::TABLE_NAME)->fetchAll();
         $this->assertCount(1, $rows);
+        $this->assertSame('1234567890', $rows[0]['key']);
         $requestStreamContents = $rows[0]['request'];
         $responseStreamContents = $rows[0]['response'];
 

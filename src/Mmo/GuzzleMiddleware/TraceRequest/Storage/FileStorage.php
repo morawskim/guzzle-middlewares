@@ -13,14 +13,13 @@ class FileStorage implements StorageInterface
     {
     }
 
-    public function store(Request $request, Response $response): void
+    public function store(string $requestId, Request $request, Response $response): void
     {
-        $time = hrtime(true);
         $domain = $request->getUri()->getHost();
         $filePathPrefix = rtrim($this->directory, '/')
             . DIRECTORY_SEPARATOR
             . $domain
-            . $time;
+            . $requestId;
 
         file_put_contents(
             $filePathPrefix . '-request',

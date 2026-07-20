@@ -20,7 +20,7 @@ class PDOStorage implements StorageInterface
         $this->createTable();
     }
 
-    public function store(Request $request, Response $response): void
+    public function store(string $requestId, Request $request, Response $response): void
     {
         $driver = $this->database->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $sql = match ($driver) {
@@ -30,6 +30,7 @@ class PDOStorage implements StorageInterface
 
         $statement = $this->database->prepare($sql);
         $statement->execute([
+            ':key' => $requestId,
             ':request' => Message::toString($request),
             ':response' => Message::toString($response),
         ]);
