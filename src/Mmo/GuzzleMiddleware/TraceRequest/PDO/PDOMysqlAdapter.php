@@ -11,10 +11,12 @@ class PDOMysqlAdapter
     {
         return <<<SQL
 CREATE TABLE IF NOT EXISTS `{$tableName}` (
-    `key` varchar(255) PRIMARY KEY NOT NULL,
+    `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    `key` varchar(255) NOT NULL,
     `datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `request` longtext NOT NULL,
-    `response` longtext NOT NULL
+    `response` longtext NOT NULL,
+    UNIQUE KEY `uniq_key` (`key`)
 );
 SQL;
     }
