@@ -10,8 +10,10 @@ use Mmo\GuzzleMiddleware\TraceRequest\Storage\PDOStorage;
 use Mmo\GuzzleMiddleware\TraceRequest\tests\PDOFactory;
 use Mmo\GuzzleMiddleware\TraceRequest\TraceRequestMiddleware;
 use PDO;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
+#[Group('integration')]
 class MysqlTest extends TestCase
 {
     private const TABLE_NAME = 'guzzle_trace_request';

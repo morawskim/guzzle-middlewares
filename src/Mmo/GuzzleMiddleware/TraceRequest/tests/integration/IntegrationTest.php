@@ -7,8 +7,10 @@ use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\HandlerStack;
 use Mmo\GuzzleMiddleware\TraceRequest\Storage\StreamStorage;
 use Mmo\GuzzleMiddleware\TraceRequest\TraceRequestMiddleware;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
+#[Group('integration')]
 class IntegrationTest extends TestCase
 {
     public function test5xxServerException(): void
