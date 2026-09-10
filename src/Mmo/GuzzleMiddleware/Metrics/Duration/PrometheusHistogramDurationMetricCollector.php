@@ -1,6 +1,6 @@
 <?php
 
-namespace Mmo\GuzzleMetricsMiddleware\Metric\Duration;
+namespace Mmo\GuzzleMiddleware\Metrics\Duration;
 
 use Prometheus\Histogram;
 

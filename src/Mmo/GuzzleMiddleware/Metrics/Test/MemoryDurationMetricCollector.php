@@ -1,9 +1,9 @@
 <?php
 
-namespace Mmo\GuzzleMetricsMiddleware\Test;
+namespace Mmo\GuzzleMiddleware\Metrics\Test;
 
-use Mmo\GuzzleMetricsMiddleware\Metric\Duration\DurationMetricCollectorInterface;
-use Mmo\GuzzleMetricsMiddleware\Metric\Duration\DurationMetricLabelsDto;
+use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricCollectorInterface;
+use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricLabelsDto;
 
 class MemoryDurationMetricCollector implements DurationMetricCollectorInterface
 {

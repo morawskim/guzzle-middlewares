@@ -4,12 +4,12 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Mmo\\GuzzleMetricsMiddleware\\": "src/"
+            "Mmo\\GuzzleMiddleware\\Metrics\\": ""
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Mmo\\GuzzleMetricsMiddlewareTest\\": "tests/"
+            "Mmo\\GuzzleMiddleware\\MetricsTest\\": "tests/"
         }
     },
     "authors": [

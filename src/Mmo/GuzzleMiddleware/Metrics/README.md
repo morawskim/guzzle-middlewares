@@ -26,7 +26,7 @@ You need a collector that implements `DurationMetricCollectorInterface`.
 For Prometheus, you can use `PrometheusHistogramDurationMetricCollector`.
 
 ```php
-use Mmo\GuzzleMetricsMiddleware\Metric\Duration\PrometheusHistogramDurationMetricCollector;
+use Mmo\GuzzleMiddleware\Metrics\Duration\PrometheusHistogramDurationMetricCollector;
 use Prometheus\CollectorRegistry;
 
 /** @var CollectorRegistry $registry */
@@ -47,7 +47,7 @@ Create the middleware and push it onto the Guzzle handler stack.
 ```php
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
-use Mmo\GuzzleMetricsMiddleware\DurationMetricMiddleware;
+use Mmo\GuzzleMiddleware\Metrics\DurationMetricMiddleware;
 
 $middleware = new DurationMetricMiddleware($collector);
 

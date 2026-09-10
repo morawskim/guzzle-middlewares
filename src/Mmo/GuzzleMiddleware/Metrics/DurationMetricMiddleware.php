@@ -1,13 +1,13 @@
 <?php
 
-namespace Mmo\GuzzleMetricsMiddleware;
+namespace Mmo\GuzzleMiddleware\Metrics;
 
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\UriResolver;
 use GuzzleHttp\Psr7\Utils;
-use Mmo\GuzzleMetricsMiddleware\Metric\Duration\DurationMetricCollectorInterface;
-use Mmo\GuzzleMetricsMiddleware\Metric\Duration\DurationMetricLabelsDto;
+use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricCollectorInterface;
+use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricLabelsDto;
 
 class DurationMetricMiddleware
 {

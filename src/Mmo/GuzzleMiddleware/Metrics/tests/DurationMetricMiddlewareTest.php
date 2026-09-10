@@ -1,6 +1,6 @@
 <?php
 
-namespace Mmo\GuzzleMetricsMiddlewareTest;
+namespace Mmo\GuzzleMiddleware\Metrics\tests;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -8,9 +8,9 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use Mmo\GuzzleMetricsMiddleware\DurationMetricMiddleware;
-use Mmo\GuzzleMetricsMiddleware\Metric\Duration\DurationMetricLabelsDto;
-use Mmo\GuzzleMetricsMiddleware\Test\MemoryDurationMetricCollector;
+use Mmo\GuzzleMiddleware\Metrics\DurationMetricMiddleware;
+use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricLabelsDto;
+use Mmo\GuzzleMiddleware\Metrics\Test\MemoryDurationMetricCollector;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
