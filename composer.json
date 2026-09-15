@@ -1,0 +1,21 @@
+{
+    "name": "mmo/guzzle-middlewares",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^12.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marcin Morawski",
+            "email": "marcin@morawskim.pl"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Mmo\\GuzzleMiddleware\\": "src/Mmo/GuzzleMiddleware/"
+        }
+    }
+}
