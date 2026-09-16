@@ -13,6 +13,7 @@ use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricLabelsDto;
 use Mmo\GuzzleMiddleware\Metrics\Test\MemoryDurationMetricCollector;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\UriInterface;
 
 class DurationMetricMiddlewareTest extends TestCase
 {
@@ -31,7 +32,7 @@ class DurationMetricMiddlewareTest extends TestCase
         $options = [];
 
         $handler = function (Request $req, array $opts) {
-            $this->assertEquals('https://api.example.com/users/123', (string) $req->getUri());
+            $this->assertEquals('https://api.example.com/users/123', (string)$req->getUri());
             return new FulfilledPromise(new Response(200));
         };
 
@@ -51,11 +52,11 @@ class DurationMetricMiddlewareTest extends TestCase
     {
         $request = new Request('POST', $uri);
         $options = [
-            DurationMetricMiddleware::URI_PATH_TEMPLATE => $pathTemplate,
+            DurationMetricMiddleware::URI_RESOLVER => $pathTemplate,
         ];
 
         $handler = function (Request $req, array $opts) use ($uri) {
-            $this->assertEquals($uri, (string) $req->getUri());
+            $this->assertEquals($uri, (string)$req->getUri());
             return new FulfilledPromise(new Response(201));
         };
 
@@ -89,7 +90,7 @@ class DurationMetricMiddlewareTest extends TestCase
     {
         $mock = new MockHandler([
             function (Request $request) use ($expectedRequestUri) {
-                $this->assertEquals($expectedRequestUri, (string) $request->getUri());
+                $this->assertEquals($expectedRequestUri, (string)$request->getUri());
                 return new Response(200);
             },
         ]);
@@ -103,7 +104,7 @@ class DurationMetricMiddlewareTest extends TestCase
         ]);
 
         $client->request('GET', $path, [
-            DurationMetricMiddleware::URI_PATH_TEMPLATE => $templatePath,
+            DurationMetricMiddleware::URI_RESOLVER => $templatePath,
         ]);
 
         $this->assertCount(1, $this->collector->metrics);
@@ -140,7 +141,7 @@ class DurationMetricMiddlewareTest extends TestCase
     {
         $mock = new MockHandler([
             function (Request $request) use ($expectedRequestUri) {
-                $this->assertEquals($expectedRequestUri, (string) $request->getUri());
+                $this->assertEquals($expectedRequestUri, (string)$request->getUri());
                 return new Response(200);
             },
         ]);
@@ -153,7 +154,7 @@ class DurationMetricMiddlewareTest extends TestCase
         ]);
 
         $client->request('GET', $uri, [
-            DurationMetricMiddleware::URI_PATH_TEMPLATE => $templatePath,
+            DurationMetricMiddleware::URI_RESOLVER => $templatePath,
         ]);
 
         $this->assertCount(1, $this->collector->metrics);
@@ -183,5 +184,114 @@ class DurationMetricMiddlewareTest extends TestCase
             'https://api.example.com/v2/orders/456',
             'api.example.com/v2/orders/<id>',
         ];
+    }
+
+    #[DataProvider('providerForTestCallable')]
+    public function testCallable(
+        array $clientConfig,
+        string $uri,
+        array $requestOptions,
+        callable $pathTemplate,
+        string $expectedRequestUri,
+        string $expectedMetricUriLabel
+    ): void {
+        $mock = new MockHandler([
+            function (Request $request) use ($expectedRequestUri) {
+                $this->assertEquals($expectedRequestUri, (string)$request->getUri());
+                return new Response(200);
+            },
+        ]);
+
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($this->middleware);
+
+        $client = new Client(array_merge(['handler' => $handlerStack], $clientConfig));
+
+        $options = array_merge($requestOptions, [
+            DurationMetricMiddleware::URI_RESOLVER => $pathTemplate,
+        ]);
+
+        $client->request('GET', $uri, $options);
+
+        $this->assertCount(1, $this->collector->metrics);
+        $this->assertEquals(
+            DurationMetricLabelsDto::create('GET', $expectedMetricUriLabel, 200),
+            $this->collector->metrics[0][1]
+        );
+    }
+
+    public static function providerForTestCallable(): iterable
+    {
+        yield 'client with base_uri and relative path' => [
+            ['base_uri' => 'https://api.example.com/v1/'],
+            'users/123',
+            [],
+            fn (UriInterface $uri) => $uri->withPath(preg_replace('#/123$#', '/<id>', $uri->getPath())),
+            'https://api.example.com/v1/users/123',
+            'api.example.com/v1/users/<id>',
+        ];
+
+        yield 'client with base_uri and absolute path' => [
+            ['base_uri' => 'https://api.example.com/v1/'],
+            '/v2/orders/456',
+            [],
+            fn (UriInterface $uri) => $uri->withPath(preg_replace('#/456$#', '/<id>', $uri->getPath())),
+            'https://api.example.com/v2/orders/456',
+            'api.example.com/v2/orders/<id>',
+        ];
+
+        yield 'client without base_uri and absolute uri' => [
+            [],
+            'https://api.example.com/v1/users/123',
+            [],
+            fn (UriInterface $uri) => $uri->withPath(preg_replace('#/123$#', '/<id>', $uri->getPath())),
+            'https://api.example.com/v1/users/123',
+            'api.example.com/v1/users/<id>',
+        ];
+
+        yield 'client with base_uri overridden in request options (relative path)' => [
+            ['base_uri' => 'https://api.example.com/v1/'],
+            'users/123',
+            ['base_uri' => 'https://override.example.com/v3/'],
+            fn (UriInterface $uri) => $uri->withPath(preg_replace('#/123$#', '/<id>', $uri->getPath())),
+            'https://override.example.com/v3/users/123',
+            'override.example.com/v3/users/<id>',
+        ];
+
+        yield 'client with base_uri overridden in request options (absolute path)' => [
+            ['base_uri' => 'https://api.example.com/v1/'],
+            '/orders/456',
+            ['base_uri' => 'https://override.example.com/v3/'],
+            fn (UriInterface $uri) => $uri->withPath(preg_replace('#/456$#', '/<id>', $uri->getPath())),
+            'https://override.example.com/orders/456',
+            'override.example.com/orders/<id>',
+        ];
+    }
+
+    public function testUriResolverInClientConstructor(): void
+    {
+        $expectedRequestUri = 'https://api.example.com/v1/users';
+        $mock = new MockHandler([
+            function (Request $request) use ($expectedRequestUri) {
+                $this->assertEquals($expectedRequestUri, (string)$request->getUri());
+                return new Response(200);
+            },
+        ]);
+
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($this->middleware);
+
+        $client = new Client([
+            'handler' => $handlerStack,
+            DurationMetricMiddleware::URI_RESOLVER => fn (UriInterface $uri) => $uri->withPath($uri->getPath() . '/edited'),
+        ]);
+
+        $client->request('GET', $expectedRequestUri);
+
+        $this->assertCount(1, $this->collector->metrics);
+        $this->assertEquals(
+            DurationMetricLabelsDto::create('GET', 'api.example.com/v1/users/edited', 200),
+            $this->collector->metrics[0][1]
+        );
     }
 }

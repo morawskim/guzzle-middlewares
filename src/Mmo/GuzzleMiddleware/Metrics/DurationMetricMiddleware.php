@@ -8,10 +8,11 @@ use GuzzleHttp\Psr7\UriResolver;
 use GuzzleHttp\Psr7\Utils;
 use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricCollectorInterface;
 use Mmo\GuzzleMiddleware\Metrics\Duration\DurationMetricLabelsDto;
+use Psr\Http\Message\UriInterface;
 
 class DurationMetricMiddleware
 {
-    public const string URI_PATH_TEMPLATE = 'request_path_template';
+    public const string URI_RESOLVER = 'uri_resolver_for_duration_metric';
 
     public function __construct(private readonly DurationMetricCollectorInterface $metrics) {}
 
@@ -30,9 +31,8 @@ class DurationMetricMiddleware
             return $handler($request, $options)->then(
                 function (Response $response) use ($request, $start, $options) {
                     $uri = $request->getUri();
-                    if (!empty($options[self::URI_PATH_TEMPLATE])) {
-                        $baseUri = $options['base_uri'] ?? $request->getUri();
-                        $uri = UriResolver::resolve(Utils::uriFor($baseUri), Utils::uriFor($options[self::URI_PATH_TEMPLATE]));
+                    if (!empty($options[self::URI_RESOLVER])) {
+                        $uri = $this->buildUri($options[self::URI_RESOLVER], $request->getUri(), $options);
                     }
 
                     $this->metrics->collect(
@@ -47,6 +47,23 @@ class DurationMetricMiddleware
                 },
             );
         };
+    }
+
+    private function buildUri($value, UriInterface $uri, array $options): UriInterface
+    {
+        if (is_callable($value)) {
+            $newUri = $value(UriResolver::resolve(Utils::uriFor($options['base_uri'] ?? ''), $uri));
+        } else if (is_string($value)) {
+            $newUri = UriResolver::resolve(Utils::uriFor($options['base_uri'] ?? $uri), Utils::uriFor($value));
+        } else {
+            throw new \RuntimeException(sprintf('Unsupported value "%s"', gettype($value)));
+        }
+
+        if (!$newUri instanceof UriInterface) {
+            throw new \RuntimeException(sprintf('Unsupported return value "%s"', gettype($newUri)));
+        }
+
+        return $newUri;
     }
 
     private function normalizePath(string $path): string
