@@ -7,7 +7,9 @@ use Prometheus\Histogram;
 
 readonly class PrometheusRegistryCollectorDurationMetric implements DurationMetricCollectorInterface
 {
-    public function __construct(private CollectorRegistry $collectorRegistry, private string $namespace) {}
+    private const DEFAULT_BUCKET = [50, 100, 250, 500, 1000, 2500, 5000, 7500, 10000, 30000];
+
+    public function __construct(private CollectorRegistry $collectorRegistry, private string $namespace, private array $buckets = self::DEFAULT_BUCKET) {}
 
     public function collect(float $duration, DurationMetricLabelsDto $dto): void
     {
@@ -21,18 +23,7 @@ readonly class PrometheusRegistryCollectorDurationMetric implements DurationMetr
             'guzzle_response_duration_ms',
             'Guzzle response duration histogram',
             ['method', 'url', 'status_code'],
-            [
-                75,
-                100,
-                250,
-                500,
-                750,
-                1000,
-                2500,
-                5000,
-                7500,
-                10000,
-            ],
+            $this->buckets,
         );
     }
 }

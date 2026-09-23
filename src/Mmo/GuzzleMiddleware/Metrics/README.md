@@ -23,7 +23,26 @@ You need a collector that implements `DurationMetricCollectorInterface`.
 
 ### Prometheus
 
-For Prometheus, you can use `PrometheusHistogramDurationMetricCollector`.
+#### PrometheusRegistryCollectorDurationMetric (Recommended)
+
+This collector automatically registers a histogram metric named `guzzle_response_duration_ms`. 
+You can configure a custom namespace and your own bucket values.
+
+```php
+use Mmo\GuzzleMiddleware\Metrics\Duration\PrometheusRegistryCollectorDurationMetric;
+use Prometheus\CollectorRegistry;
+
+/** @var CollectorRegistry $registry */
+$namespace = 'myapp';
+$buckets = [50, 100, 250, 500, 1000]; // Optional
+$collector = new PrometheusRegistryCollectorDurationMetric($registry, $namespace, $buckets);
+```
+
+#### PrometheusHistogramDurationMetricCollector (Deprecated)
+
+> [!WARNING]
+> This collector is deprecated and will be removed in future versions. 
+Use `PrometheusRegistryCollectorDurationMetric` instead.
 
 ```php
 use Mmo\GuzzleMiddleware\Metrics\Duration\PrometheusHistogramDurationMetricCollector;

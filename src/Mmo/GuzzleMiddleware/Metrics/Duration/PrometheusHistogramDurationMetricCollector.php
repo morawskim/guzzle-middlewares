@@ -4,6 +4,9 @@ namespace Mmo\GuzzleMiddleware\Metrics\Duration;
 
 use Prometheus\Histogram;
 
+/**
+ * @deprecated Use PrometheusRegistryCollectorDurationMetric instead.
+ */
 readonly class PrometheusHistogramDurationMetricCollector implements DurationMetricCollectorInterface
 {
     public function __construct(private Histogram $histogram) {}
